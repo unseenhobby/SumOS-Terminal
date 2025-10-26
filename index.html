@@ -196,8 +196,7 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
       disconnectBtn.style.display = 'none';
       localStorage.removeItem('sumos_telegram_id');
       if(baseRef) baseRef.off();
-      chatEl.innerHTML = 'Disconnected.
-';
+      chatEl.innerHTML = 'Disconnected.';
       showOverlay();
     }
 
@@ -212,6 +211,7 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
     }catch(e){ console.warn('telegram detection failed',e); }
 
     // If not opened from Telegram, try to load saved id from localStorage
+	
     if(!telegramId){
       const saved = localStorage.getItem('sumos_telegram_id');
       if(saved && validateId(saved)){
@@ -228,6 +228,10 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
         }
       }
     }
+	
+	// show hacker login overlay
+          //chatEl.textContent = '';
+          //showOverlay();
 
     manualConnect.addEventListener('click', ()=>{
       const v = manualId.value.trim();
