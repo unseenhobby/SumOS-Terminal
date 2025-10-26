@@ -1,53 +1,38 @@
-<!--
-SumOS SumOS ReaTime Terminal! — (robotName)
-Single-file Web App (index.html)
-
-INSTRUCTIONS:
-1) This file already contains your Firebase config (from what you provided). Leave it as-is.
-2) Upload this file to your Hostinger public folder (ensure HTTPS enabled).
-3) Open the Web App from Telegram using a web_app button so Telegram.WebApp is available and the app auto-detects the Telegram user ID. If not opened from Telegram you can enter Telegram ID manually in the "Hacker Login" popup.
-4) Expected Firebase RTDB structure:
-   /users/{telegramId}/
-       command: "..."
-       dataPrint: "..."
-       robotName: "..."
-       logs/{pushId}/ {text, ts}
-
-SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated users (or your custom token auth) can read/write their node. Example rules included at bottom of this file.
--->
-
 <!doctype html>
 <html lang="ms">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SumOS SumOS ReaTime Terminal! — (robotName)</title>
+  <title id="pageTitle">SumOS RealTime Terminal! — (robotName)</title>
   <style>
-    :root{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace}
-    body{margin:0;background:#000814;color:#d1ffd6;display:flex;flex-direction:column;height:100vh}
-    header{padding:12px 16px;background:#001122;display:flex;align-items:center;gap:12px}
+    :root{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Roboto Mono','Courier New',monospace}
+    html,body{margin:0;height:100%;overflow:hidden;background:#000814;color:#d1ffd6}
+    body{display:flex;flex-direction:column}
+    header{padding:12px 16px;background:#001122;display:flex;align-items:center;gap:12px;flex-shrink:0}
     header .brand{display:flex;flex-direction:column}
     header h1{font-size:16px;margin:0;color:#7fff7f}
     header p{margin:0;font-size:12px;color:#6fb3a3}
-    main{flex:1;display:flex;gap:12px;padding:12px}
-
-    .terminal{flex:1;display:flex;flex-direction:column;background:linear-gradient(180deg,#001018,#00202a);border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
-    .chat{flex:1;overflow:auto;padding:12px;border-radius:6px;background:#000; font-family:ui-monospace,monospace;font-size:13px;line-height:1.5;color:#bfffbf}
+    main{flex:1;display:flex;gap:12px;padding:12px;overflow:hidden}
+    .terminal{flex:1;display:flex;flex-direction:column;background:linear-gradient(180deg,#001018,#00202a);
+      border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    .chat{flex:1;overflow-y:auto;padding:12px;border-radius:6px;background:#000;
+      font-family:ui-monospace,monospace;font-size:13px;line-height:1.5;color:#bfffbf}
     .bubble{display:inline-block;padding:6px 10px;border-radius:8px;margin:6px 0;max-width:85%}
     .robot{background:rgba(12,40,30,0.9);color:#bfffbf;border-bottom-left-radius:2px}
     .you{background:#063a35;color:#eafff0;border-bottom-right-radius:2px;align-self:flex-end}
-    .meta{width:260px;background:#001a1a;border-radius:8px;padding:12px;font-size:13px}
+    .meta{width:260px;background:#001a1a;border-radius:8px;padding:12px;font-size:13px;flex-shrink:0;overflow:auto}
     .meta .row{margin-bottom:8px}
     .small{font-size:12px;color:#9fb3c4}
     .controls{display:flex;gap:8px;margin-top:8px}
-    input[type=text]{flex:1;padding:10px;border-radius:6px;border:1px solid #023; background:#00191a;color:inherit}
+    input[type=text]{flex:1;padding:10px;border-radius:6px;border:1px solid #023;background:#00191a;color:inherit}
     button{padding:10px 12px;border-radius:6px;border:none;background:#04d29f;color:#012;cursor:pointer}
-    footer{padding:8px 12px;font-size:12px;color:#9fb3c4;background:#00111a}
+    .clearBtn{background:#ff7070;color:#000;font-weight:bold}
+    footer{padding:8px 12px;font-size:12px;color:#9fb3c4;background:#00111a;flex-shrink:0}
     .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#073b35;color:#dfffe8}
-
-    /* Hacker Login overlay */
-    .overlay{position:fixed;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.95));display:flex;align-items:center;justify-content:center;z-index:40}
-    .loginBox{width:420px;max-width:92%;border-radius:8px;padding:18px;background:#00110b;border:1px solid #033;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);
+      display:flex;align-items:center;justify-content:center;z-index:40}
+    .loginBox{width:420px;max-width:92%;border-radius:8px;padding:18px;background:#00110b;
+      border:1px solid #033;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
     .loginTitle{color:#3aff3a;font-size:18px;margin:0 0 8px 0}
     .prompt{color:#9fffb0;background:#02130d;padding:10px;border-radius:6px;font-size:13px}
     .loginRow{display:flex;gap:8px;margin-top:12px}
@@ -55,10 +40,8 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
     .hint{font-size:12px;color:#6fb3a3;margin-top:8px}
     .blink{border-left:2px solid #0f0;padding-left:6px;animation:blink 1s steps(1) infinite}
     @keyframes blink{50%{border-color:transparent}}
-
     .control-links{margin-top:10px;display:flex;gap:8px}
     .link{color:#80ff80;cursor:pointer;text-decoration:underline;font-size:13px}
-
     .disconnect{margin-top:10px;padding:8px;border-radius:6px;background:#220a0a;color:#ffdede;border:none;cursor:pointer}
   </style>
 </head>
@@ -66,7 +49,7 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
   <header>
     <div class="badge">SumOS</div>
     <div class="brand">
-      <h1 id="title">SumOS SumOS ReaTime Terminal! — (robotName)</h1>
+      <h1 id="title">SumOS RealTime Terminal! — (robotName)</h1>
       <p class="muted">Realtime terminal for your robot — chat-style live feed</p>
     </div>
   </header>
@@ -74,57 +57,45 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
   <main>
     <section class="terminal">
       <div class="chat" id="chat">Connecting...</div>
-
       <div class="controls">
         <input type="text" id="cmdInput" placeholder="Taip command (contoh: fl=30)" autocomplete="off">
         <button id="sendBtn">EXECUTE</button>
+        <button id="clearBtn" class="clearBtn">CLEAR CHAT</button>
       </div>
     </section>
 
     <aside class="meta">
       <div class="row"><strong>Robot ID</strong></div>
       <div class="row small" id="robotId">-</div>
-
       <div class="row"><strong>Robot Name</strong></div>
       <div class="row small" id="robotName">-</div>
-
       <div class="row"><strong>Last command</strong></div>
       <div class="row small" id="lastCommand">-</div>
-
       <div class="row"><button id="disconnectBtn" class="disconnect" style="display:none">Disconnect</button></div>
-
-      <div style="margin-top:8px" class="small">Tip: buka app dari Telegram supaya app dapat kenal Telegram user secara automatik. Jika bukan dalam Telegram, anda boleh masukkan Telegram ID secara manual.</div>
+      <div style="margin-top:8px" class="small">Tip: buka app dari Telegram supaya auto-detect ID.</div>
     </aside>
   </main>
 
-  <footer>
-    Connected • Ready
-  </footer>
+  <footer>Connected • Ready</footer>
 
-  <!-- Firebase (compat) SDKs for simple browser usage -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-  <!-- Telegram WebApp JS (detect Telegram user inside WebApp) -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
   <div id="overlay" class="overlay" style="display:none">
     <div class="loginBox">
       <div class="loginTitle">TERMINAL LOGIN</div>
       <div class="prompt">ENTER TELEGRAM ID TO CONNECT <span class="blink">█</span></div>
-
       <div class="loginRow">
         <input id="manualId" class="ghost" placeholder="Telegram ID (nombor sahaja)" inputmode="numeric">
         <button id="manualConnect" class="ghost">CONNECT</button>
       </div>
-
-      <div class="hint">Atau buka terus dari Telegram untuk auto-log-in. ID akan disimpan pada peranti untuk lawatan seterusnya.</div>
-      <div class="control-links"><div id="helpLink" class="link">How it works</div><div id="clearLocal" class="link">Clear saved ID</div></div>
+      <div class="hint">Atau buka terus dari Telegram untuk auto-log-in.</div>
+      <div class="control-links"><div id="clearLocal" class="link">Clear saved ID</div></div>
     </div>
   </div>
 
   <script>
-    // ----------------- FIREBASE CONFIG (from your project) -----------------
     const FIREBASE_CONFIG = {
       apiKey: "AIzaSyAFaOLWSUuGO1J_Y1DdCOK9IKVGxJAld8M",
       authDomain: "sumos-ai.firebaseapp.com",
@@ -135,16 +106,14 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
       appId: "1:587439292501:web:cb982fcf78e9ea442194dc",
       measurementId: "G-EK9X0CC8Y3"
     };
-    // -----------------------------------------------------------------------
 
-    // Initialize Firebase
     firebase.initializeApp(FIREBASE_CONFIG);
     const db = firebase.database();
 
-    // DOM
-    const chatEl = document.getElementById('chat');
-    const cmdInput = document.getElementById('cmdInput');
-    const sendBtn = document.getElementById('sendBtn');
+    let chatEl = document.getElementById('chat');
+    let cmdInput = document.getElementById('cmdInput');
+    let sendBtn = document.getElementById('sendBtn');
+    const clearBtn = document.getElementById('clearBtn');
     const robotIdEl = document.getElementById('robotId');
     const robotNameEl = document.getElementById('robotName');
     const lastCmdEl = document.getElementById('lastCommand');
@@ -154,6 +123,7 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
     const manualConnect = document.getElementById('manualConnect');
     const disconnectBtn = document.getElementById('disconnectBtn');
     const clearLocal = document.getElementById('clearLocal');
+    const pageTitle = document.getElementById('pageTitle'); // [ADD]
 
     function appendRobot(text){
       const div = document.createElement('div');
@@ -170,169 +140,121 @@ SECURITY NOTE: Configure Firebase Realtime Database Rules so only authenticated 
       chatEl.scrollTop = chatEl.scrollHeight;
     }
 
-    // --------- Connection management ---------
-    let telegramId = null;
-    let baseRef = null;
+    clearBtn.addEventListener('click', ()=>{ chatEl.innerHTML=''; appendRobot('[system] Chat cleared.'); });
 
-    function showOverlay(){ overlay.style.display = 'flex'; manualId.focus(); }
-    function hideOverlay(){ overlay.style.display = 'none'; }
+    let telegramId=null, baseRef=null;
 
-    function validateId(id){ return /^[0-9]{5,20}$/.test(id); }
+    function showOverlay(){overlay.style.display='flex';manualId.focus();}
+    function hideOverlay(){overlay.style.display='none';}
+    function validateId(id){return /^[0-9]{5,20}$/.test(id);}
 
     function setConnectedId(id){
-      telegramId = id;
-      localStorage.setItem('sumos_telegram_id', id);
-      robotIdEl.textContent = id;
-      disconnectBtn.style.display = 'inline-block';
+      if(telegramId===id) return; // cegah reconnect sama
+      telegramId=id;
+      localStorage.setItem('sumos_telegram_id',id);
+      robotIdEl.textContent=id;
+      disconnectBtn.style.display='inline-block';
       hideOverlay();
       initListeners();
     }
 
     function clearConnection(){
-      telegramId = null;
-      robotIdEl.textContent = '-';
-      lastCmdEl.textContent = '-';
-      robotNameEl.textContent = '-';
-      disconnectBtn.style.display = 'none';
+      telegramId=null;
+      robotIdEl.textContent='-';
+      lastCmdEl.textContent='-';
+      robotNameEl.textContent='-';
+      disconnectBtn.style.display='none';
       localStorage.removeItem('sumos_telegram_id');
       if(baseRef) baseRef.off();
-      chatEl.innerHTML = 'Disconnected.';
+      chatEl.innerHTML='Disconnected.';
       showOverlay();
     }
 
-    // Detect Telegram ID via Telegram.WebApp when opened inside Telegram
     try{
-      if(window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user && Telegram.WebApp.initDataUnsafe.user.id){
-        const t = String(Telegram.WebApp.initDataUnsafe.user.id);
-        // If there's a saved manual id different, prefer Telegram auto-id for security
-        localStorage.setItem('sumos_telegram_id', t);
+      if(window.Telegram && Telegram.WebApp?.initDataUnsafe?.user?.id){
+        const t=String(Telegram.WebApp.initDataUnsafe.user.id);
+        console.log('Detected Telegram ID:',t);
+        localStorage.setItem('sumos_telegram_id',t);
         setConnectedId(t);
+      }else{
+        const saved=localStorage.getItem('sumos_telegram_id');
+        if(saved&&validateId(saved)){console.log('Loaded saved ID:',saved);setConnectedId(saved);}
+        else showOverlay();
       }
-    }catch(e){ console.warn('telegram detection failed',e); }
-
-    // If not opened from Telegram, try to load saved id from localStorage
-	
-    if(!telegramId){
-      const saved = localStorage.getItem('sumos_telegram_id');
-      if(saved && validateId(saved)){
-        setConnectedId(saved);
-      } else {
-        // If URL param ?telegramId=... provided (for testing), allow it
-        const params = new URLSearchParams(location.search);
-        if(params.get('telegramId') && validateId(params.get('telegramId'))){
-          setConnectedId(params.get('telegramId'));
-        } else {
-          // show hacker login overlay
-          chatEl.textContent = '';
-          showOverlay();
-        }
-      }
+    }catch(e){
+      console.warn('Telegram detection failed',e);
+      const saved=localStorage.getItem('sumos_telegram_id');
+      if(saved&&validateId(saved)) setConnectedId(saved);
+      else showOverlay();
     }
-	
-	// show hacker login overlay
-          //chatEl.textContent = '';
-          //showOverlay();
 
-    manualConnect.addEventListener('click', ()=>{
-      const v = manualId.value.trim();
-      if(!validateId(v)){ alert('Sila masukkan Telegram ID yang sah (nombor sahaja).'); manualId.focus(); return; }
+    manualConnect.addEventListener('click',()=>{
+      const v=manualId.value.trim();
+      if(!validateId(v)){alert('Masukkan ID sah.');return;}
       setConnectedId(v);
     });
+    clearLocal.addEventListener('click',()=>{localStorage.removeItem('sumos_telegram_id');alert('Saved ID cleared');});
+    disconnectBtn.addEventListener('click',()=>{if(confirm('Disconnect?'))clearConnection();});
 
-    clearLocal.addEventListener('click', ()=>{ localStorage.removeItem('sumos_telegram_id'); alert('Saved ID cleared'); });
-
-    disconnectBtn.addEventListener('click', ()=>{
-      if(confirm('Disconnect from this robot?')) clearConnection();
-    });
-
-    // --------- Firebase listeners ---------
     function initListeners(){
       if(!telegramId) return;
-      chatEl.innerHTML = '';
-      appendRobot('Connected as Telegram ID: ' + telegramId);
+      if(baseRef) baseRef.off();
+      chatEl.innerHTML='';
+      appendRobot('Connected as Telegram ID: '+telegramId);
+      baseRef=db.ref(telegramId);
 
-      baseRef = db.ref('users/' + telegramId);
-
-      baseRef.child('robotName').on('value', snap => {
-        const v = snap.val();
-        robotNameEl.textContent = v ?? '-';
-        if(v) titleEl.textContent = `SumOS SumOS ReaTime Terminal! — ${v}`;
+      // [ADD] Auto update robotName ke title & header
+      baseRef.child('robotName').on('value',s=>{
+        const v=s.val();
+        robotNameEl.textContent=v??'-';
+        if(v){
+          titleEl.textContent=`SumOS RealTime Terminal! — ${v}`;
+          pageTitle.textContent=`SumOS RealTime Terminal! — ${v}`;
+        }
       });
 
-      baseRef.child('dataPrint').on('value', snap => {
-        const v = snap.val();
-        if(v){ appendRobot('[DATA] ' + v); }
+      baseRef.child('dataPrint').on('value',s=>{
+        const v=s.val();
+        if(v) appendRobot('[DATA] '+v);
+      });
+      baseRef.child('logs').on('child_added',s=>{
+        const d=s.val();
+        if(d&&d.text) appendRobot(d.text);
+      });
+      baseRef.child('command').on('value',s=>{
+        const v=s.val();
+        lastCmdEl.textContent=v??'-';
       });
 
-      baseRef.child('logs').on('child_added', s => {
-        const d = s.val();
-        if(d && d.text){ appendRobot(d.text); }
-      });
-
-      baseRef.child('command').on('value', snap => {
-        const v = snap.val();
-        lastCmdEl.textContent = v ?? '-';
-      });
-
-      // send command logic
       function sendCommand(){
-        const txt = cmdInput.value.trim();
+        const txt=cmdInput.value.trim();
         if(!txt) return;
-
-        // Special in-terminal command to bind/set robot ID using format: idRobot=123123123
         if(txt.toLowerCase().startsWith('idrobot=')){
-          const parts = txt.split('=');
-          const candidate = parts[1] ? parts[1].trim() : '';
-          if(!validateId(candidate)){
-            appendRobot('[system] Invalid ID. Use numeric Telegram ID, e.g. idRobot=123123123');
-            return;
-          }
-          appendRobot('[system] Setting Telegram ID to ' + candidate + ' ...');
-          // If already connected to another id, disconnect first
+          const candidate=txt.split('=')[1]?.trim();
+          if(!validateId(candidate)){appendRobot('[system] Invalid ID.');return;}
+          appendRobot('[system] Setting Telegram ID to '+candidate);
           if(baseRef) baseRef.off();
           setConnectedId(candidate);
-          cmdInput.value = '';
+          cmdInput.value='';
           return;
         }
-
-        // Normal command: write to Firebase command node
-        if(!telegramId){ appendRobot('[error] No Telegram ID set. Use idRobot=YOUR_ID to bind.'); return; }
         baseRef.child('command').set(txt).then(()=>{
-          baseRef.child('logs').push({text: '[YOU] ' + txt, ts: Date.now()});
-          appendYou('[YOU] ' + txt);
-          cmdInput.value = '';
-        }).catch(err=>{ appendRobot('[error sending] ' + err.message); });
+          baseRef.child('logs').push({text:'[you] '+txt,ts:Date.now()});
+          appendYou('[you] '+txt);
+          cmdInput.value='';
+        }).catch(err=>appendRobot('[error] '+err.message));
       }
 
-      sendBtn.addEventListener('click', sendCommand);
-      cmdInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendCommand(); });
-    }
+      // [FIX DOUBLE LISTENER] — pastikan event listener tak berganda
+      sendBtn.replaceWith(sendBtn.cloneNode(true));
+      cmdInput.replaceWith(cmdInput.cloneNode(true));
+      sendBtn = document.getElementById('sendBtn');
+      cmdInput = document.getElementById('cmdInput');
 
+      // listener kekal sama, tapi tak double
+      sendBtn.addEventListener('click',sendCommand);
+      cmdInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendCommand();});
+    }
   </script>
-
-  <!--
-  SAMPLE FIREBASE REaltime Database RULES (paste into Firebase Console -> Realtime Database -> Rules)
-
-  {
-    "rules": {
-      "users": {
-        "$telegramId": {
-          ".read": "auth != null && auth.uid == $telegramId",
-          ".write": "auth != null && auth.uid == $telegramId",
-          "logs": {
-            ".indexOn": ["ts"]
-          }
-        }
-      }
-    }
-  }
-
-  For quick testing only (NOT FOR PRODUCTION) you can temporarily use:
-  {
-    ".read": true,
-    ".write": true
-  }
-  -->
-
 </body>
 </html>
