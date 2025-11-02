@@ -1,75 +1,98 @@
 <!doctype html>
 <html lang="ms">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title id="pageTitle">SumOS RealTime Terminal! — (robotName)</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title id="pageTitle">SumOS Realtime Terminal 2025 ©</title>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
-    :root{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Roboto Mono','Courier New',monospace}
-    html,body{margin:0;height:100%;overflow:auto;background:#000814;color:#d1ffd6}
-    body{display:flex;flex-direction:column;min-height:100vh}
-    header{padding:12px 16px;background:#001122;display:flex;align-items:center;gap:12px;flex-shrink:0}
-    header .brand{display:flex;flex-direction:column}
-    header h1{font-size:16px;margin:0;color:#7fff7f}
-    header p{margin:0;font-size:12px;color:#6fb3a3}
-    main{flex:1;display:flex;gap:12px;padding:12px;overflow:auto;min-height:0}
-    /* Terminal column */
-    .terminal{flex:1;display:flex;flex-direction:column;background:linear-gradient(180deg,#001018,#00202a);
-      border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.6);min-height:240px;min-width:0}
-    .chat{flex:1;overflow-y:auto;padding:12px;border-radius:6px;background:#000;font-family:ui-monospace,monospace;
-      font-size:13px;line-height:1.5;color:#bfffbf;min-height:120px}
-    .bubble{display:inline-block;padding:6px 10px;border-radius:8px;margin:6px 0;max-width:85%}
-    .robot{background:rgba(12,40,30,0.9);color:#bfffbf;border-bottom-left-radius:2px;display:block}
-    .you{background:#063a35;color:#eafff0;border-bottom-right-radius:2px;align-self:flex-end;display:block}
-    .meta{width:260px;background:#001a1a;border-radius:8px;padding:12px;font-size:13px;flex-shrink:0;overflow:auto}
-    .meta .row{margin-bottom:8px}
-    .small{font-size:12px;color:#9fb3c4}
-    .controls{display:flex;gap:8px;margin-top:8px}
-    input[type=text]{flex:1;padding:10px;border-radius:6px;border:1px solid #023;background:#00191a;color:inherit}
-    button{padding:10px 12px;border-radius:6px;border:none;background:#04d29f;color:#012;cursor:pointer}
-    .clearBtn{background:#ff7070;color:#000;font-weight:bold}
-    footer{padding:8px 12px;font-size:12px;color:#9fb3c4;background:#00111a;flex-shrink:0}
-    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#073b35;color:#dfffe8}
-    .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:40}
-    .loginBox{width:460px;max-width:92%;border-radius:8px;padding:18px;background:#00110b;border:1px solid #033;box-shadow:0 20px 60px rgba(0,0,0,0.8)}
-    .loginTitle{color:#3aff3a;font-size:18px;margin:0 0 8px 0}
-    .prompt{color:#9fffb0;background:#02130d;padding:10px;border-radius:6px;font-size:13px}
-    .loginRow{display:flex;gap:8px;margin-top:12px}
-    .ghost{background:transparent;border:1px dashed #0a5;padding:8px 10px;border-radius:6px;color:#9fffb0}
-    .hint{font-size:12px;color:#6fb3a3;margin-top:8px}
-    .blink{border-left:2px solid #0f0;padding-left:6px;animation:blink 1s steps(1) infinite}
-    @keyframes blink{50%{border-color:transparent}}
-    .control-links{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-    .link{color:#80ff80;cursor:pointer;text-decoration:underline;font-size:13px}
-    .disconnect{margin-top:10px;padding:8px;border-radius:6px;background:#220a0a;color:#ffdede;border:none;cursor:pointer}
-    /* Config area */
-    .config-area { margin-top:12px; display:flex;flex-direction:column; gap:8px; }
-    .config-header { display:flex;align-items:center;gap:8px; }
-    .config-toggle { background:transparent;border:1px solid rgba(255,255,255,0.06);padding:6px 8px;border-radius:6px;cursor:pointer;color:#9fffb0 }
-    .config-pin { background:transparent;border:1px solid rgba(255,255,255,0.06);padding:6px 8px;border-radius:6px;cursor:pointer;color:#9fffb0 }
-    .config-box { background:#00111e;border-left:4px solid #00eaff;padding:10px;margin:0;border-radius:6px;color:#a5f3ff;font-size:13px; width:100%; overflow:auto }
-    .config-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-    .config-item { background:rgba(255,255,255,0.02); padding:8px;border-radius:6px; font-family:ui-monospace,monospace; display:flex;justify-content:space-between; align-items:center; }
-    .status { font-size:12px; color:#9fb3c4; margin-left:auto; }
-    /* Pinned layout */
-    .pinned { order:2; width:320px; flex-shrink:0; }
-    .pinned .config-box { height:calc(100% - 24px); overflow:auto; }
-    /* Mobile responsiveness */
-    @media (max-width:900px){
-      main{flex-direction:column;}
-      .meta{width:100%;order:-1}
+    :root{
+      --bg:#000814;
+      --panel:#001018;
+      --panel-2:#001a1a;
+      --muted:#9fb3c4;
+      --accent:#0fb9a6;
+      --accent-2:#07a58c;
+      --robot-bg: rgba(12,40,30,0.92);
+      --you-bg:#074b43;
+      --text:#d1ffd6;
+      --soft:#bfffbf;
+      --danger:#ff7070;
+      --border: rgba(255,255,255,0.03);
+      --header-accent:#3fe8c2;
+    }
+    body.light{
+      --bg:#f8fdfa;
+      --panel:#ffffff;
+      --panel-2:#f1f6f4;
+      --muted:#3b4f4c;
+      --accent:#009688;
+      --accent-2:#00897b;
+      --robot-bg:#e0f7f4;
+      --you-bg:#d2f1ea;
+      --text:#02231b;
+      --soft:#024d3b;
+      --danger:#ff4d4d;
+      --border: rgba(0,0,0,0.08);
+      --header-accent:#00897b;
     }
 
-    /* small code tag display */
-    code{background:rgba(255,255,255,0.03);padding:2px 6px;border-radius:4px;color:#9fffb0}
+    html,body{height:100%;margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,'Roboto Mono','Courier New',monospace;color:var(--text);background:var(--bg)}
+    header{padding:12px 16px;background:var(--panel);display:flex;align-items:center;gap:12px;justify-content:space-between;border-bottom:1px solid var(--border)}
+    header .brand{display:flex;flex-direction:column}
+    header h1{font-size:16px;margin:0;color:var(--header-accent)}
+    header p{margin:0;font-size:12px;color:var(--muted)}
+    main{display:flex;gap:12px;padding:12px;min-height:calc(100vh - 124px);box-sizing:border-box}
+    .terminal{flex:1;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--panel),#00202a);border-radius:8px;padding:12px;box-shadow:0 6px 18px rgba(0,0,0,0.25);min-height:240px;min-width:0}
+    .chat{flex:1;overflow-y:auto;padding:12px;border-radius:6px;background:var(--bg);font-size:13px;line-height:1.5;color:var(--soft);display:flex;flex-direction:column;gap:8px}
+    .bubble{display:inline-block;padding:8px 12px;border-radius:8px;max-width:85%;word-break:break-word}
+    .robot{background:var(--robot-bg);color:var(--soft);align-self:flex-start;border-bottom-left-radius:2px}
+    .you{background:var(--you-bg);color:var(--text);align-self:flex-end;border-bottom-right-radius:2px}
+    .meta{width:320px;background:var(--panel-2);border-radius:8px;padding:12px;font-size:13px;flex-shrink:0;overflow:auto;border:1px solid var(--border)}
+    .meta .row{margin-bottom:8px}
+    .small{font-size:13px;color:var(--muted);font-weight:400}
+    .controls{display:flex;gap:8px;margin-top:8px}
+    input[type=text]{flex:1;padding:10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:inherit}
+    .btn{padding:10px 12px;border-radius:6px;border:none;cursor:pointer;font-weight:700}
+    .btn-primary{background:var(--accent);color:#002}
+    .btn-danger{background:var(--danger);color:#000}
+    .theme-switch{background:transparent;border:1px solid var(--border);padding:6px 10px;border-radius:6px;cursor:pointer;color:var(--soft)}
+    footer{padding:8px 12px;font-size:12px;color:var(--muted);background:var(--panel);border-top:1px solid var(--border);text-align:center}
+
+    .config-area{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    .config-header{display:flex;align-items:center;gap:8px}
+    .config-toggle,.config-pin{background:transparent;border:1px solid var(--border);padding:6px 8px;border-radius:6px;cursor:pointer;color:var(--soft)}
+    .config-box{background:var(--panel-2);border-left:4px solid var(--header-accent);padding:12px;border-radius:6px;color:var(--muted);font-size:13px;width:100%;overflow:auto}
+    .config-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .config-item{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border)}
+    .config-label{color:var(--muted);font-size:13px}
+    .config-value{background:var(--accent-2);color:#fff;border:none;padding:12px 14px;border-radius:6px;cursor:pointer;font-weight:800;width:50%;text-align:center;box-shadow:0 6px 14px rgba(7,165,140,0.08);font-family:inherit}
+    .config-value:hover{filter:brightness(0.98);transform:translateY(-2px)}
+    .pinned{order:2;width:320px;flex-shrink:0}
+    .pinned .config-box{height:calc(100% - 24px);overflow:auto}
+    @media (max-width:900px){main{flex-direction:column}.meta{width:100%;order:-1}.config-grid{grid-template-columns:1fr}.config-value{width:60%}}
+    code{background:rgba(255,255,255,0.03);padding:2px 6px;border-radius:4px;color:var(--header-accent)}
   </style>
 </head>
 <body>
   <header>
-    <div class="badge">SumOS</div>
-    <div class="brand">
-      <h1 id="title">SumOS RealTime Terminal! — (robotName)</h1>
-      <p class="muted">Realtime terminal for your robot — chat-style live feed</p>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="badge" style="background:#073b35;padding:4px 8px;border-radius:999px;color:#dfffe8">SumOS</div>
+      <div class="brand">
+        <h1 id="title">SumOS Realtime Terminal 2025 ©</h1>
+        <p class="muted">Realtime terminal for your robot — chat-style live feed</p>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="themeToggle" class="theme-switch" title="Toggle theme">Light Mode</button>
+      <button id="clearBtn" class="btn btn-danger">CLEAR CHAT</button>
     </div>
   </header>
 
@@ -79,50 +102,44 @@
 
       <div class="config-area" id="configArea">
         <div class="config-header">
-          <div style="font-weight:600;color:#9fffb0">Config</div>
+          <div style="font-weight:600;color:var(--soft)">Config</div>
           <button id="configToggle" class="config-toggle">Hide</button>
-          <button id="configPin" class="config-pin" title="Pin to side">Pin to side</button>
+          <button id="configPin" class="config-pin">Pin to side</button>
           <div class="status" id="configStatus">Idle</div>
         </div>
+
         <div class="config-box" id="configBox">
           <div class="config-grid" id="configGrid">
-            <div style="grid-column:1/-1;color:#9fb3c4">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>
+            <div style="grid-column:1/-1;color:var(--muted)">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>
           </div>
         </div>
       </div>
 
-      <div class="controls">
-        <input type="text" id="cmdInput" placeholder="Taip command (contoh: fl=30) — taip 'sumos' untuk fetch config" autocomplete="off">
-        <button id="sendBtn">EXECUTE</button>
-        <button id="clearBtn" class="clearBtn">CLEAR CHAT</button>
+      <div class="controls" style="margin-top:10px">
+        <input type="text" id="cmdInput" placeholder="Taip command (contoh: bl=8) — taip 'sumos' untuk fetch config" autocomplete="off">
+        <button id="sendBtn" class="btn btn-primary">EXECUTE</button>
       </div>
     </section>
 
     <aside class="meta" id="sideMeta">
-      <div class="row"><strong>Robot ID</strong></div>
+      <div class="row">Robot ID</div>
       <div class="row small" id="robotId">-</div>
-      <div class="row"><strong>Robot Name</strong></div>
+      <div class="row">Robot Name</div>
       <div class="row small" id="robotName">-</div>
-      <div class="row"><strong>Last command</strong></div>
+      <div class="row">Last command</div>
       <div class="row small" id="lastCommand">-</div>
-      <div class="row"><button id="disconnectBtn" class="disconnect" style="display:none">Disconnect</button></div>
+      <div class="row"><button id="disconnectBtn" class="btn" style="display:none;background:#220a0a;color:#ffdede;border-radius:6px;padding:8px">Disconnect</button></div>
       <div style="margin-top:8px" class="small">Tip: buka app dari Telegram supaya auto-detect ID.</div>
     </aside>
   </main>
 
-  <footer id="siteFooter">Connected • Ready</footer>
-
-  <!-- Firebase + Telegram WebApp -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <footer id="siteFooter">SumOS Realtime Terminal 2025 ©</footer>
 
   <!-- Login overlay -->
   <div id="overlay" class="overlay" style="display:none">
     <div class="loginBox">
       <div class="loginTitle">TERMINAL LOGIN</div>
-      <div class="prompt">ENTER TELEGRAM ID TO CONNECT <span class="blink">█</span></div>
+      <div class="prompt">ENTER ROBOT ID (robotKey/idRobot) TO CONNECT <span class="blink">█</span></div>
       <div class="loginRow">
         <input id="manualId" class="ghost" placeholder="Telegram ID (nombor sahaja)" inputmode="numeric">
         <button id="manualConnect" class="ghost">CONNECT</button>
@@ -132,391 +149,522 @@
     </div>
   </div>
 
-  <script>
-    /***** CONFIG *****/
-    const FIREBASE_CONFIG = {
-      apiKey: "AIzaSyAFaOLWSUuGO1J_Y1DdCOK9IKVGxJAld8M",
-      authDomain: "sumos-ai.firebaseapp.com",
-      databaseURL: "https://sumos-ai-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "sumos-ai",
-      storageBucket: "sumos-ai.firebasestorage.app",
-      messagingSenderId: "587439292501",
-      appId: "1:587439292501:web:cb982fcf78e9ea442194dc",
-      measurementId: "G-EK9X0CC8Y3"
-    };
+<script>
+/***** FIREBASE CONFIG (same keys used earlier) *****/
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAFaOLWSUuGO1J_Y1DdCOK9IKVGxJAld8M",
+  authDomain: "sumos-ai.firebaseapp.com",
+  databaseURL: "https://sumos-ai-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sumos-ai",
+  storageBucket: "sumos-ai.firebasestorage.app",
+  messagingSenderId: "587439292501",
+  appId: "1:587439292501:web:cb982fcf78e9ea442194dc",
+  measurementId: "G-EK9X0CC8Y3"
+};
 
-    /***** INIT FIREBASE + AUTH *****/
-    firebase.initializeApp(FIREBASE_CONFIG);
-    const db = firebase.database();
-    const auth = firebase.auth();
+firebase.initializeApp(FIREBASE_CONFIG);
+const db = firebase.database();
+const auth = firebase.auth();
+auth.signInAnonymously()
+  .then(() => console.log("✅ Firebase Auth active (anonymous)"))
+  .catch(err => {
+    console.error("Auth error:", err);
+    alert("Firebase Authentication failed — reload page.");
+  });
 
-    // Anonymous sign-in so Firebase rules auth != null will allow access.
-    auth.signInAnonymously()
-      .then(() => console.log("✅ Firebase Auth active (anonymous)"))
-      .catch(err => {
-        console.error("Auth error:", err);
-        alert("Firebase Authentication failed — reload page.");
-      });
+/***** ELEMENTS *****/
+const chatEl = document.getElementById('chat');
+let cmdInput = document.getElementById('cmdInput');
+let sendBtn = document.getElementById('sendBtn');
+const clearBtn = document.getElementById('clearBtn');
+const robotIdEl = document.getElementById('robotId');
+const robotNameEl = document.getElementById('robotName');
+const lastCmdEl = document.getElementById('lastCommand');
+const titleEl = document.getElementById('title');
+const overlay = document.getElementById('overlay');
+const manualId = document.getElementById('manualId');
+const manualConnect = document.getElementById('manualConnect');
+const disconnectBtn = document.getElementById('disconnectBtn');
+const clearLocal = document.getElementById('clearLocal');
+const pageTitle = document.getElementById('pageTitle');
+const configBox = document.getElementById('configBox');
+const configGrid = document.getElementById('configGrid');
+const configToggle = document.getElementById('configToggle');
+const configPin = document.getElementById('configPin');
+const configStatus = document.getElementById('configStatus');
+const themeToggle = document.getElementById('themeToggle');
 
-    /***** ELEMENTS *****/
-    const chatEl = document.getElementById('chat');
-    let cmdInput = document.getElementById('cmdInput');
-    let sendBtn = document.getElementById('sendBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const robotIdEl = document.getElementById('robotId');
-    const robotNameEl = document.getElementById('robotName');
-    const lastCmdEl = document.getElementById('lastCommand');
-    const titleEl = document.getElementById('title');
-    const overlay = document.getElementById('overlay');
-    const manualId = document.getElementById('manualId');
-    const manualConnect = document.getElementById('manualConnect');
-    const disconnectBtn = document.getElementById('disconnectBtn');
-    const clearLocal = document.getElementById('clearLocal');
-    const pageTitle = document.getElementById('pageTitle');
-    const configBox = document.getElementById('configBox');
-    const configGrid = document.getElementById('configGrid');
-    const configToggle = document.getElementById('configToggle');
-    const configPin = document.getElementById('configPin');
-    const configStatus = document.getElementById('configStatus');
-    const terminalSection = document.getElementById('terminalSection');
-    const sideMeta = document.getElementById('sideMeta');
-    const siteFooter = document.getElementById('siteFooter');
+let telegramId = null;
+let baseRef = null;
+let configRef = null;
+let latestConfig = {}; // hold merged latest config
+let pinned = false;
+let lastConfigSnapshot = null; // avoid duplicate display on load
 
-    /***** HELPERS *****/
-    function appendRobot(text){
-      const div = document.createElement('div');
-      div.className = 'bubble robot';
-      div.textContent = text;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-    function appendYou(text){
-      const div = document.createElement('div');
-      div.className = 'bubble you';
-      div.textContent = text;
-      chatEl.appendChild(div);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-    function appendRobotElement(el){
-      const wrapper = document.createElement('div');
-      wrapper.className = 'bubble robot';
-      wrapper.style.display = 'block';
-      wrapper.appendChild(el);
-      chatEl.appendChild(wrapper);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
+// ====== NEW FLAGS ======
+let awaitingSumos = false; // set true when user issues 'sumos' so we force render even if snapshot identical
+let isProcessingInitialConfig = false; // true while we're doing the initial once('value') load
+let isSending = false; // prevent duplicate sends
+let lastLocalSent = null; // { text, ts } - to avoid double-print from local echo + logs
 
-    function setStatus(text, color){
-      configStatus.textContent = text;
-      configStatus.style.color = color || '#9fb3c4';
-    }
+/***** THEME (Dark/Light) *****/
+function updateThemeLabel(){
+  const light = document.body.classList.contains('light');
+  themeToggle.textContent = light ? 'Dark Mode' : 'Light Mode';
+}
+themeToggle.addEventListener('click', ()=>{
+  document.body.classList.toggle('light');
+  updateThemeLabel();
+});
+updateThemeLabel();
 
-    clearBtn.addEventListener('click', ()=>{ chatEl.innerHTML=''; appendRobot('[system] Chat cleared.'); });
+/***** HELPERS *****/
+function formatTimestampFromLocale(tsLocaleString){
+  if(!tsLocaleString) return new Date().toLocaleString();
+  const parsed = Date.parse(tsLocaleString);
+  if(!isNaN(parsed)) return new Date(parsed).toLocaleString();
+  return tsLocaleString;
+}
+function pruneChatLines(limit = 10){
+  while(chatEl.children.length > limit){
+    chatEl.removeChild(chatEl.firstChild);
+  }
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+function appendRobot(text){
+  const div = document.createElement('div');
+  div.className = 'bubble robot';
+  div.textContent = text;
+  chatEl.appendChild(div);
+  pruneChatLines(10);
+}
+function appendYou(text){
+  const div = document.createElement('div');
+  div.className = 'bubble you';
+  div.textContent = text;
+  chatEl.appendChild(div);
+  pruneChatLines(10);
+}
+function appendRobotElement(el){
+  const wrapper = document.createElement('div');
+  wrapper.className = 'bubble robot';
+  wrapper.style.display = 'block';
+  wrapper.appendChild(el);
+  chatEl.appendChild(wrapper);
+  pruneChatLines(10);
+}
+function setStatus(text, color){
+  configStatus.textContent = text;
+  configStatus.style.color = color || '';
+}
+clearBtn.addEventListener('click', ()=>{ chatEl.innerHTML=''; appendRobot('[system] Chat cleared.'); });
 
-    /***** STATE *****/
-    let telegramId = null;
-    let baseRef = null;
-    let configRef = null;
-    let latestConfig = {}; // hold merged latest config
-    let pinned = false;
+/***** ID / CONNECTION UI *****/
+function showOverlay(){ overlay.style.display='flex'; manualId.focus(); }
+function hideOverlay(){ overlay.style.display='none'; }
+function validateId(id){ return /^[0-9]{4,20}$/.test(id); } // allow 4+ digits
 
-    /***** UI: overlay show/hide and validation *****/
-    function showOverlay(){ overlay.style.display='flex'; manualId.focus(); }
-    function hideOverlay(){ overlay.style.display='none'; }
-    function validateId(id){ return /^[0-9]{5,20}$/.test(id); }
+function setConnectedId(id){
+  if(telegramId === id) return;
+  telegramId = id;
+  localStorage.setItem('sumos_telegram_id', id);
+  robotIdEl.textContent = id;
+  disconnectBtn.style.display = 'inline-block';
+  hideOverlay();
+  initListeners();
+}
 
-    function setConnectedId(id){
-      if(telegramId === id) return;
-      telegramId = id;
-      localStorage.setItem('sumos_telegram_id', id);
-      robotIdEl.textContent = id;
-      disconnectBtn.style.display = 'inline-block';
-      hideOverlay();
-      initListeners();
-    }
+function clearConnection(){
+  telegramId = null;
+  robotIdEl.textContent = '-';
+  lastCmdEl.textContent = '-';
+  robotNameEl.textContent = '-';
+  disconnectBtn.style.display = 'none';
+  localStorage.removeItem('sumos_telegram_id');
+  if(baseRef) baseRef.off();
+  if(configRef) configRef.off();
+  baseRef = null;
+  configRef = null;
+  latestConfig = {};
+  lastConfigSnapshot = null;
+  awaitingSumos = false; // reset flag on disconnect
+  isProcessingInitialConfig = false;
+  isSending = false;
+  lastLocalSent = null;
+  chatEl.innerHTML = 'Disconnected.';
+  configGrid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted)">No config — not connected.</div>';
+  setStatus('Idle');
+  showOverlay();
+}
 
-    function clearConnection(){
-      telegramId = null;
-      robotIdEl.textContent = '-';
-      lastCmdEl.textContent = '-';
-      robotNameEl.textContent = '-';
-      disconnectBtn.style.display = 'none';
-      localStorage.removeItem('sumos_telegram_id');
-      if(baseRef) baseRef.off();
-      if(configRef) configRef.off();
-      baseRef = null;
-      configRef = null;
-      latestConfig = {};
-      chatEl.innerHTML = 'Disconnected.';
-      // clear config UI
-      configGrid.innerHTML = '<div style="grid-column:1/-1;color:#9fb3c4">No config — not connected.</div>';
-      setStatus('Idle');
-      showOverlay();
-    }
+/***** Auto-detect or load saved ID *****/
+try{
+  if(window.Telegram && Telegram.WebApp?.initDataUnsafe?.user?.id){
+    const t = String(Telegram.WebApp.initDataUnsafe.user.id);
+    localStorage.setItem('sumos_telegram_id', t);
+    setConnectedId(t);
+  } else {
+    const saved = localStorage.getItem('sumos_telegram_id');
+    if(saved && validateId(saved)){ setConnectedId(saved); }
+    else showOverlay();
+  }
+}catch(e){
+  const saved = localStorage.getItem('sumos_telegram_id');
+  if(saved && validateId(saved)) setConnectedId(saved);
+  else showOverlay();
+}
 
-    /***** Auto-detect or load saved ID *****/
-    try{
-      if(window.Telegram && Telegram.WebApp?.initDataUnsafe?.user?.id){
-        const t = String(Telegram.WebApp.initDataUnsafe.user.id);
-        console.log('Detected Telegram ID:', t);
-        localStorage.setItem('sumos_telegram_id', t);
-        setConnectedId(t);
-      } else {
-        const saved = localStorage.getItem('sumos_telegram_id');
-        if(saved && validateId(saved)){ setConnectedId(saved); }
-        else showOverlay();
-      }
-    }catch(e){
-      console.warn('Telegram detection failed', e);
-      const saved = localStorage.getItem('sumos_telegram_id');
-      if(saved && validateId(saved)) setConnectedId(saved);
-      else showOverlay();
-    }
+manualConnect.addEventListener('click', ()=>{ const v = manualId.value.trim(); if(!validateId(v)){ alert('Masukkan ID sah.'); return; } setConnectedId(v); });
+clearLocal.addEventListener('click', ()=>{ localStorage.removeItem('sumos_telegram_id'); alert('Saved ID cleared'); });
+disconnectBtn.addEventListener('click', ()=>{ if(confirm('Disconnect?')) clearConnection(); });
 
-    manualConnect.addEventListener('click', ()=>{
-      const v = manualId.value.trim();
-      if(!validateId(v)){ alert('Masukkan ID sah.'); return; }
-      setConnectedId(v);
+/***** CONFIG UI render helpers *****/
+function renderConfigGrid(){
+  const keys = Object.keys(latestConfig || {}).sort();
+  if(!keys.length){
+    configGrid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted)">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>';
+    return;
+  }
+  configGrid.innerHTML = '';
+  keys.forEach(k=>{
+    const item = document.createElement('div');
+    item.className = 'config-item';
+
+    const keyEl = document.createElement('div');
+    keyEl.className = 'config-label';
+    keyEl.textContent = k;
+
+    const valBtn = document.createElement('button');
+    valBtn.className = 'config-value';
+    valBtn.textContent = String(latestConfig[k]);
+    valBtn.title = `Klik untuk isi '${k}=' dalam input`;
+    valBtn.addEventListener('click', ()=>{
+      cmdInput.value = k + '=';
+      cmdInput.focus();
+      cmdInput.setSelectionRange(cmdInput.value.length, cmdInput.value.length);
     });
-    clearLocal.addEventListener('click', ()=>{ localStorage.removeItem('sumos_telegram_id'); alert('Saved ID cleared'); });
-    disconnectBtn.addEventListener('click', ()=>{ if(confirm('Disconnect?')) clearConnection(); });
 
-    /***** CONFIG UI render helpers *****/
-    function renderConfigGrid(){
-      const keys = Object.keys(latestConfig || {}).sort();
-      if(!keys.length){
-        configGrid.innerHTML = '<div style="grid-column:1/-1;color:#9fb3c4">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>';
-        return;
+    item.appendChild(keyEl);
+    item.appendChild(valBtn);
+    configGrid.appendChild(item);
+  });
+}
+
+/***** Trim logs helper: keep only last 10 items in Firebase logs node ----*/
+function trimLogs(){
+  if(!baseRef) return;
+  const logsRef = baseRef.child('logs');
+  logsRef.once('value').then(s=>{
+    const entries = s.val() || {};
+    const pairs = Object.entries(entries).map(([k,v])=>{
+      let t = 0;
+      if(v && v.tsLocale){
+        const parsed = Date.parse(v.tsLocale);
+        t = isNaN(parsed) ? 0 : parsed;
       }
-      configGrid.innerHTML = '';
-      keys.forEach(k=>{
-        const item = document.createElement('div');
-        item.className = 'config-item';
-        const keyEl = document.createElement('div');
-        keyEl.textContent = k;
-        keyEl.style.opacity = '0.9';
-        const valEl = document.createElement('div');
-        valEl.textContent = String(latestConfig[k]);
-        valEl.style.fontWeight = '700';
-        item.appendChild(keyEl);
-        item.appendChild(valEl);
-        configGrid.appendChild(item);
+      return { key:k, ts: t };
+    });
+    pairs.sort((a,b)=> a.ts - b.ts || a.key.localeCompare(b.key));
+    if(pairs.length > 10){
+      const toRemove = pairs.slice(0, pairs.length - 10);
+      toRemove.forEach(item => {
+        logsRef.child(item.key).remove().catch(()=>{/* ignore */});
       });
     }
+  }).catch(()=>{/* ignore */});
+}
 
-    function displayFullConfigInChat(note){
-      // Pretty-print the entire latestConfig into a readable block and append as robot bubble.
-      const keys = Object.keys(latestConfig || {}).sort();
-      if(!keys.length) return;
-      const el = document.createElement('div');
-      el.style.whiteSpace = 'pre-wrap';
-      // header
-      let header = '✅ Full Config (latest)';
-      if(note) header += ' — ' + note;
-      // build body lines
-      const lines = keys.map(k => `${k}: ${latestConfig[k]}`);
-      el.innerText = header + '\n' + lines.join('\n');
-      appendRobotElement(el);
+/***** Merge helper *****/
+function mergeAndDisplay(newObj, shortNote){
+  if(!newObj || typeof newObj !== 'object') return;
+  latestConfig = Object.assign({}, latestConfig, newObj);
+  renderConfigGrid();
+  setStatus('Config updated', '#7fffb0');
+  displayFullConfigInChat(shortNote ?? 'merged');
+}
+
+function displayFullConfigInChat(note){
+  const keys = Object.keys(latestConfig || {}).sort();
+  if(!keys.length) return;
+  const el = document.createElement('div');
+  el.style.whiteSpace = 'pre-wrap';
+  let header = '✅ Full Config (latest)';
+  if(note) header += ' — ' + note;
+  const lines = keys.map(k => `${k}: ${latestConfig[k]}`);
+  el.innerText = header + '\n' + lines.join('\n');
+  appendRobotElement(el);
+}
+
+/***** MAIN LISTENERS SETUP *****/
+function initListeners(){
+  if(!telegramId) return;
+  // detach old
+  if(baseRef) baseRef.off();
+  if(configRef) configRef.off();
+
+  chatEl.innerHTML = '';
+  appendRobot('Connected as Telegram ID: ' + telegramId);
+  setStatus('Listening...', '#ffd36b');
+
+  baseRef = db.ref(telegramId);
+
+  // trim logs on connect
+  trimLogs();
+
+  // robotName -> update UI & title
+  baseRef.child('robotName').on('value', s=>{
+    const v = s.val();
+    robotNameEl.textContent = v ?? '-';
+    if(v){
+      titleEl.textContent = `SumOS Realtime Terminal 2025 © — ${v}`;
+      pageTitle.textContent = `SumOS Realtime Terminal 2025 © — ${v}`;
     }
+  });
 
-    /***** Merge helper: merges incoming partial into latestConfig then update UI & chat *****/
-    function mergeAndDisplay(newObj, shortNote){
-      if(!newObj || typeof newObj !== 'object') return;
-      // shallow merge (robot sends simple key: value)
-      latestConfig = Object.assign({}, latestConfig, newObj);
+  // dataPrint -> general data prints
+  baseRef.child('dataPrint').on('value', s=>{
+    const v = s.val();
+    if(v) appendRobot('[DATA] ' + v);
+  });
+
+  // logs -> each child added shows in chat
+  baseRef.child('logs').limitToLast(10).on('child_added', s=>{
+    const d = s.val();
+    if(d && d.text){
+      const timeStr = d.tsLocale ? formatTimestampFromLocale(d.tsLocale) : new Date().toLocaleString();
+
+      // Avoid double-print if we already printed locally very recently.
+      if(lastLocalSent && lastLocalSent.text === d.text){
+        // compare timestamps - if within 10s, assume this is the echo of our local send -> skip remote print
+        const parsed = d.tsLocale ? Date.parse(d.tsLocale) : Date.now();
+        if(!isNaN(parsed) && Math.abs(parsed - lastLocalSent.ts) < 10000){
+          // consume the echo (do not print) and clear the lastLocalSent
+          lastLocalSent = null;
+          return;
+        }
+      }
+
+      appendRobot(`[${timeStr}] ${d.text}`);
+    }
+  });
+
+  // command -> update last command display
+  baseRef.child('command').on('value', s=>{
+    const v = s.val();
+    lastCmdEl.textContent = v ?? '-';
+  });
+
+  // CONFIG listeners
+  configRef = baseRef.child('config');
+
+  // initial load once()
+  isProcessingInitialConfig = true; // start initial load phase
+  configRef.once('value').then(s=>{
+    const cfg = s.val();
+    if(cfg && typeof cfg === 'object'){
+      // set latestConfig to the full snapshot (preserve merge semantics elsewhere)
+      latestConfig = Object.assign({}, latestConfig, cfg);
       renderConfigGrid();
-      setStatus('Config updated', '#7fffb0');
-      // append full merged snapshot to chat so user always sees full config
-      displayFullConfigInChat(shortNote ?? 'merged');
+      setStatus('Config loaded', '#9fb3c4');
+      displayFullConfigInChat('initial load');
+      // snapshot for equality compare to avoid duplicate "on" firing display
+      try{ lastConfigSnapshot = JSON.stringify(cfg); }catch(e){ lastConfigSnapshot = null; }
+    } else {
+      configGrid.innerHTML = '<div style="grid-column:1/-1;color:var(--muted)">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>';
+      setStatus('No config', '#9fb3c4');
+      lastConfigSnapshot = null;
+    }
+    // initial load done — allow child handlers to show normal messages from now on
+    isProcessingInitialConfig = false;
+  }).catch(err=>{
+    console.warn('Config initial load failed', err);
+    lastConfigSnapshot = null;
+    isProcessingInitialConfig = false;
+  });
+
+  // on - live updates; compare snapshot to avoid duplicate display at startup
+  configRef.on('value', s=>{
+    const cfg = s.val();
+    // if cfg equals snapshot that we just loaded via once(), skip to avoid duplicate rendering,
+    // unless we explicitly awaited a 'sumos' command
+    let thisSnapshot = null;
+    try{ thisSnapshot = cfg ? JSON.stringify(cfg) : null; }catch(e){ thisSnapshot = null; }
+
+    if(lastConfigSnapshot && thisSnapshot === lastConfigSnapshot && !awaitingSumos){
+      // same as initial load — ignore
+      lastConfigSnapshot = thisSnapshot; // keep it
+      return;
     }
 
-    /***** MAIN LISTENERS SETUP *****/
-    function initListeners(){
-      if(!telegramId) return;
-      // detach old
+    // otherwise update and set snapshot
+    if(!cfg){
+      latestConfig = {};
+      renderConfigGrid();
+      setStatus('Config cleared', '#9fb3c4');
+      appendRobot('[system] Config cleared from robot.');
+      lastConfigSnapshot = null;
+      awaitingSumos = false; // reset flag after processing
+      return;
+    }
+    // full replace with the new config (preserve merge behaviour elsewhere)
+    latestConfig = Object.assign({}, latestConfig, cfg);
+    renderConfigGrid();
+    setStatus('Config updated (full)', '#7fffb0');
+    displayFullConfigInChat('full update');
+    lastConfigSnapshot = thisSnapshot;
+    awaitingSumos = false; // reset flag after processing
+  });
+
+  // per-key changes for nice merged display
+  configRef.on('child_changed', s=>{
+    const k = s.key;
+    const v = s.val();
+    const patch = {};
+    patch[k] = v;
+    // If this is during initial once('value') load, merge silently to avoid spam.
+    if(isProcessingInitialConfig){
+      latestConfig = Object.assign({}, latestConfig, patch);
+      renderConfigGrid();
+      return;
+    }
+    mergeAndDisplay(patch, `updated: ${k}`);
+  });
+
+  configRef.on('child_added', s=>{
+    const k = s.key;
+    const v = s.val();
+    const patch = {};
+    patch[k] = v;
+    // If this is during initial once('value') load, merge silently to avoid spam.
+    if(isProcessingInitialConfig){
+      latestConfig = Object.assign({}, latestConfig, patch);
+      renderConfigGrid();
+      return;
+    }
+    mergeAndDisplay(patch, `added: ${k}`);
+  });
+
+  // prevent duplicate bindings for send
+  sendBtn.replaceWith(sendBtn.cloneNode(true));
+  cmdInput.replaceWith(cmdInput.cloneNode(true));
+  sendBtn = document.getElementById('sendBtn');
+  cmdInput = document.getElementById('cmdInput');
+
+  function sendCommand(){
+    const txt = cmdInput.value.trim();
+    if(!txt) return;
+
+    // Prevent duplicate send while one in-flight
+    if(isSending){
+      // quick UX feedback
+      setStatus('Already sending...','orange');
+      return;
+    }
+
+    // idrobot= handler (unchanged)
+    if(txt.toLowerCase().startsWith('idrobot=')){
+      const candidate = txt.split('=')[1]?.trim();
+      if(!validateId(candidate)){ appendRobot('[system] Invalid ID.'); return; }
+      appendRobot('[system] Setting Telegram ID to ' + candidate);
       if(baseRef) baseRef.off();
       if(configRef) configRef.off();
-
-      chatEl.innerHTML = '';
-      appendRobot('Connected as Telegram ID: ' + telegramId);
-      setStatus('Listening...', '#ffd36b');
-
-      baseRef = db.ref(telegramId);
-
-      // robotName -> update UI & title
-      baseRef.child('robotName').on('value', s=>{
-        const v = s.val();
-        robotNameEl.textContent = v ?? '-';
-        if(v){
-          titleEl.textContent = `SumOS RealTime Terminal! — ${v}`;
-          pageTitle.textContent = `SumOS RealTime Terminal! — ${v}`;
-        }
-      });
-
-      // dataPrint -> general data prints
-      baseRef.child('dataPrint').on('value', s=>{
-        const v = s.val();
-        if(v) appendRobot('[DATA] ' + v);
-      });
-
-      // logs -> each child added shows in chat
-      baseRef.child('logs').on('child_added', s=>{
-        const d = s.val();
-        if(d && d.text) appendRobot(d.text);
-      });
-
-      // command -> update last command display
-      baseRef.child('command').on('value', s=>{
-        const v = s.val();
-        lastCmdEl.textContent = v ?? '-';
-      });
-
-      // CONFIG: listen for whole-set updates (value) and per-key changes (child_changed/child_added).
-      configRef = baseRef.child('config');
-
-      // Initial fetch: load full config once when connected (A selected)
-      configRef.once('value').then(s=>{
-        const cfg = s.val();
-        if(cfg && typeof cfg === 'object'){
-          latestConfig = Object.assign({}, latestConfig, cfg);
-          renderConfigGrid();
-          setStatus('Config loaded', '#9fb3c4');
-          // show full config in chat on initial load
-          displayFullConfigInChat('initial load');
-        } else {
-          // no config found yet
-          configGrid.innerHTML = '<div style="grid-column:1/-1;color:#9fb3c4">No config yet — taip <code>sumos</code> untuk minta config daripada robot.</div>';
-          setStatus('No config', '#9fb3c4');
-        }
-      }).catch(err=>{
-        console.warn('Config initial load failed', err);
-      });
-
-      // Whole node changes (if robot writes entire config object)
-      configRef.on('value', s=>{
-        const cfg = s.val();
-        if(!cfg){
-          latestConfig = {};
-          renderConfigGrid();
-          setStatus('Config cleared', '#9fb3c4');
-          appendRobot('[system] Config cleared from robot.');
-          return;
-        }
-        // Merge full object (so partial local state preserved if needed)
-        latestConfig = Object.assign({}, latestConfig, cfg);
-        renderConfigGrid();
-        setStatus('Config updated (full)', '#7fffb0');
-        displayFullConfigInChat('full update');
-      });
-
-      // Per-key changes
-      configRef.on('child_changed', s=>{
-        const k = s.key;
-        const v = s.val();
-        const patch = {};
-        patch[k] = v;
-        mergeAndDisplay(patch, `updated: ${k}`);
-      });
-
-      // New keys added
-      configRef.on('child_added', s=>{
-        const k = s.key;
-        const v = s.val();
-        const patch = {};
-        patch[k] = v;
-        mergeAndDisplay(patch, `added: ${k}`);
-      });
-
-      // prepare send command UI (prevent duplicate bindings)
-      sendBtn.replaceWith(sendBtn.cloneNode(true));
-      cmdInput.replaceWith(cmdInput.cloneNode(true));
-      sendBtn = document.getElementById('sendBtn');
-      cmdInput = document.getElementById('cmdInput');
-
-      // send function
-      function sendCommand(){
-        const txt = cmdInput.value.trim();
-        if(!txt) return;
-        // if user uses the special idrobot= flow
-        if(txt.toLowerCase().startsWith('idrobot=')){
-          const candidate = txt.split('=')[1]?.trim();
-          if(!validateId(candidate)){ appendRobot('[system] Invalid ID.'); return; }
-          appendRobot('[system] Setting Telegram ID to ' + candidate);
-          if(baseRef) baseRef.off();
-          if(configRef) configRef.off();
-          setConnectedId(candidate);
-          cmdInput.value = '';
-          return;
-        }
-
-        // handle 'sumos' special command: send the command; robot should respond by writing config
-        if(txt.toLowerCase() === 'sumos'){
-          setStatus('Sent sumos — waiting for config...', '#ffd36b');
-          baseRef.child('command').set('sumos').then(()=>{
-            baseRef.child('logs').push({text:'[you] sumos', ts:Date.now()});
-            appendYou('[you] sumos');
-            cmdInput.value = '';
-            // configRef listeners will pick up replies and show merged full config automatically
-          }).catch(err=>{
-            appendRobot('[error] ' + err.message);
-            setStatus('Error sending', '#ff7070');
-          });
-          return;
-        }
-
-        // default: set command and push log
-        baseRef.child('command').set(txt).then(()=>{
-          baseRef.child('logs').push({text:'[you] ' + txt, ts:Date.now()});
-          appendYou('[you] ' + txt);
-          cmdInput.value = '';
-        }).catch(err=>appendRobot('[error] ' + err.message));
-      }
-
-      sendBtn.addEventListener('click', sendCommand);
-      cmdInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') sendCommand(); });
+      setConnectedId(candidate);
+      cmdInput.value = '';
+      return;
     }
 
-    /***** Config UI controls: toggle & pin *****/
-    configToggle.addEventListener('click', ()=>{
-      const hidden = configBox.style.display === 'none';
-      if(hidden){
-        configBox.style.display = '';
-        configToggle.textContent = 'Hide';
-      } else {
-        configBox.style.display = 'none';
-        configToggle.textContent = 'Show';
-      }
+    // sumos command - special handling
+    if(txt.toLowerCase() === 'sumos'){
+      isSending = true;
+      awaitingSumos = true;
+      setStatus('Sent sumos — waiting for config...', '#ffd36b');
+
+      // set command and push log
+      baseRef.child('command').set('sumos').then(()=>{
+        const tsLocale = new Date().toLocaleString();
+        // push log, but we expect the child's child_added to echo it back.
+        return baseRef.child('logs').push({ text:'[you] sumos', tsLocale }).then(ref=>{
+          // local echo: mark lastLocalSent to avoid duplicate printing when logs child_added fires
+          lastLocalSent = { text: '[you] sumos', ts: Date.parse(tsLocale) || Date.now() };
+          // show immediate local bubble (no timestamp) for better UX
+          appendYou('[you] sumos');
+          trimLogs();
+          cmdInput.value = '';
+          isSending = false;
+        }).catch(err=>{
+          appendRobot('[error] ' + err.message);
+          setStatus('Error sending', '#ff7070');
+          awaitingSumos = false;
+          isSending = false;
+        });
+      }).catch(err=>{
+        appendRobot('[error] ' + err.message);
+        setStatus('Error sending', '#ff7070');
+        awaitingSumos = false;
+        isSending = false;
+      });
+      return;
+    }
+
+    // default command
+    isSending = true;
+    baseRef.child('command').set(txt).then(()=>{
+      const tsLocale = new Date().toLocaleString();
+      return baseRef.child('logs').push({ text:'[you] ' + txt, tsLocale }).then(()=>{
+        // mark local echo to avoid double printing
+        lastLocalSent = { text: '[you] ' + txt, ts: Date.parse(tsLocale) || Date.now() };
+        appendYou('[you] ' + txt);
+        trimLogs();
+        cmdInput.value = '';
+        isSending = false;
+      }).catch(err=>{
+        appendRobot('[error] ' + err.message);
+        isSending = false;
+      });
+    }).catch(err=>{
+      appendRobot('[error] ' + err.message);
+      isSending = false;
     });
+  }
 
-    configPin.addEventListener('click', ()=>{
-      pinned = !pinned;
-      if(pinned){
-        // move config area to side (pin)
-        const pinEl = document.createElement('div');
-        pinEl.id = 'pinnedConfigWrapper';
-        pinEl.className = 'pinned';
-        const configArea = document.getElementById('configArea');
-        const parent = configArea.parentNode;
-        parent.removeChild(configArea);
-        pinEl.appendChild(configArea);
-        sideMeta.parentNode.insertBefore(pinEl, sideMeta); // insert before meta (so appears above)
-        configPin.textContent = 'Unpin';
-      } else {
-        // restore to terminal
-        const pinEl = document.getElementById('pinnedConfigWrapper');
-        if(pinEl){
-          const configArea = document.getElementById('configArea');
-          pinEl.parentNode.removeChild(pinEl);
-          terminalSection.insertBefore(configArea, terminalSection.children[1] || null);
-        }
-        configPin.textContent = 'Pin to side';
-      }
-    });
+  sendBtn.addEventListener('click', sendCommand);
+  cmdInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') sendCommand(); });
+}
 
-    /***** Utility: validate ID used earlier *****/
-    function validateId(id){ return /^[0-9]{5,20}$/.test(id); }
+/***** Config UI controls: toggle & pin *****/
+configToggle.addEventListener('click', ()=>{
+  const hidden = configBox.style.display === 'none';
+  if(hidden){
+    configBox.style.display = '';
+    configToggle.textContent = 'Hide';
+  } else {
+    configBox.style.display = 'none';
+    configToggle.textContent = 'Show';
+  }
+});
 
-    // End of script
-  </script>
+configPin.addEventListener('click', ()=>{
+  pinned = !pinned;
+  if(pinned){
+    const pinEl = document.createElement('div');
+    pinEl.id = 'pinnedConfigWrapper';
+    pinEl.className = 'pinned';
+    const configArea = document.getElementById('configArea');
+    const parent = configArea.parentNode;
+    parent.removeChild(configArea);
+    pinEl.appendChild(configArea);
+    document.getElementById('sideMeta')?.parentNode.insertBefore(pinEl, document.getElementById('sideMeta'));
+    configPin.textContent = 'Unpin';
+  } else {
+    const pinEl = document.getElementById('pinnedConfigWrapper');
+    if(pinEl){
+      const configArea = document.getElementById('configArea');
+      pinEl.parentNode.removeChild(pinEl);
+      document.getElementById('terminalSection').appendChild(configArea);
+    }
+    configPin.textContent = 'Pin to side';
+  }
+});
+</script>
 </body>
 </html>
